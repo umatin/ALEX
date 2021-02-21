@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "log_regression.h"
+
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -88,48 +90,32 @@ template <class T>
 class LinearModelBuilder {
  public:
   LinearModel<T>* model_;
+  
+  std::vector<double> x_data;
+  std::vector<double> y_data;
 
   explicit LinearModelBuilder<T>(LinearModel<T>* model) : model_(model) {}
 
   inline void add(T x, int y) {
-    count_++;
-    x_sum_ += static_cast<long double>(x);
-    y_sum_ += static_cast<long double>(y);
-    xx_sum_ += static_cast<long double>(x) * x;
-    xy_sum_ += static_cast<long double>(x) * y;
-    x_min_ = std::min<T>(x, x_min_);
-    x_max_ = std::max<T>(x, x_max_);
-    y_min_ = std::min<double>(y, y_min_);
-    y_max_ = std::max<double>(y, y_max_);
+    x_data.push_back(static_cast<double>(x));
+    y_data.push_back(static_cast<double>(y));
   }
 
   void build() {
-    if (count_ <= 1) {
+    if (y_data.size() == 0) {
       model_->a_ = 0;
-      model_->b_ = static_cast<double>(y_sum_);
+      model_->b_ = 0;
       return;
     }
-
-    if (static_cast<long double>(count_) * xx_sum_ - x_sum_ * x_sum_ == 0) {
-      // all values in a bucket have the same key.
+    if (y_data.size() == 1) {
       model_->a_ = 0;
-      model_->b_ = static_cast<double>(y_sum_) / count_;
+      model_->b_ = static_cast<double>(y_data[0]);
       return;
     }
-
-    auto slope = static_cast<double>(
-        (static_cast<long double>(count_) * xy_sum_ - x_sum_ * y_sum_) /
-        (static_cast<long double>(count_) * xx_sum_ - x_sum_ * x_sum_));
-    auto intercept = static_cast<double>(
-        (y_sum_ - static_cast<long double>(slope) * x_sum_) / count_);
-    model_->a_ = slope;
-    model_->b_ = intercept;
-
-    // If floating point precision errors, fit spline
-    if (model_->a_ <= 0) {
-      model_->a_ = (y_max_ - y_min_) / (x_max_ - x_min_);
-      model_->b_ = -static_cast<double>(x_min_) * model_->a_;
-    }
+    int fr,to;
+    create_regression_tournament_selection<FastDiscreteLogNorm,false,false>(x_data, y_data, fr, to, std::min<int>(20, (int)log2(x_data.size())));
+    fit_line(x_data, y_data, fr, to, model_->a_, model_->b_);
+    std::cout << model_->a_ << model_->b_ << std::endl;
   }
 
  private:
