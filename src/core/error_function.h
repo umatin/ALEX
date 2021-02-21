@@ -14,9 +14,9 @@ enum ERROR_TYPE{L1Norm, LogNorm, DiscreteLogNorm, L2Norm, FastDiscreteLogNorm, S
     BOUNDED -> clamp values inside the array to obtain a more realistic estimate of the error
 */
 template<ERROR_TYPE E, bool ROUND = true, bool BOUNDED = true>
-inline double apply_errorfn(double prediction, double y, int max_bound){
+inline double apply_errorfn(double prediction, double y, int min_, int max_){
     if(BOUNDED){
-        prediction = std::max<long double>(std::min<long double>(prediction, max_bound), 0);
+        prediction = std::max<long double>(std::min<long double>(prediction, max_), min_);
     }
     if(ROUND){
         prediction = std::floor(prediction);
@@ -48,24 +48,24 @@ inline double apply_errorfn(double prediction, double y, int max_bound){
     Calculates the error for a single element for a certain linear function
 */
 template<ERROR_TYPE E, bool ROUND = true, bool BOUNDED = true>
-inline double calculate_error_single_element (std::vector<double>& data, double a, double b, int i){
+inline double calculate_error_single_element (std::vector<double>& data, double a, double b, int i, int min_, int max_){
     double x = data[i];
     double y = i;
     double prediction = (a*x)+b;
     
-    return apply_errorfn<E, ROUND, BOUNDED>(prediction, y, data.size()-1);
+    return apply_errorfn<E, ROUND, BOUNDED>(prediction, y, min_, max_);
 }
 
 /*
     Calculates the error for a single element for a certain linear function for x,y points
 */
 template<ERROR_TYPE E, bool ROUND = true, bool BOUNDED = true>
-inline double calculate_error_single_element (std::vector<double>& datax, std::vector<double>& datay, double a, double b, int i){
+inline double calculate_error_single_element (std::vector<double>& datax, std::vector<double>& datay, double a, double b, int i, int min_, int max_){
     double x = datax[i];
     double y = datay[i];
     double prediction = (a*x)+b;
     
-    return apply_errorfn<E, ROUND, BOUNDED>(prediction, y, datax.size()-1);
+    return apply_errorfn<E, ROUND, BOUNDED>(prediction, y, min_, max_);
 }
 
 /*

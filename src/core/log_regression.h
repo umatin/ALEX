@@ -156,7 +156,7 @@ void create_regression_tournament_selection_fast(std::vector<double> & data, dou
 }
 
 template<ERROR_TYPE E, bool ROUND = true, bool BOUNDED = true>
-void create_regression_tournament_selection(std::vector<double> & datax, std::vector<double> & datay, int & fr, int & to, int height){
+void create_regression_tournament_selection(std::vector<double> & datax, std::vector<double> & datay, int & fr, int & to, int height, int min_, int max_){
     if(height == 0){
         fr = xorshf96()%datax.size();
         to = xorshf96()%datax.size();
@@ -167,23 +167,23 @@ void create_regression_tournament_selection(std::vector<double> & datax, std::ve
     }
     int fr_l, to_l;
     int fr_r, to_r;
-    create_regression_tournament_selection<E,ROUND,BOUNDED>(datax, datay, fr_l, to_l, height-1);
-    create_regression_tournament_selection<E,ROUND,BOUNDED>(datax, datay, fr_r, to_r, height-1);
+    create_regression_tournament_selection<E,ROUND,BOUNDED>(datax, datay, fr_l, to_l, height-1, min_, max_);
+    create_regression_tournament_selection<E,ROUND,BOUNDED>(datax, datay, fr_r, to_r, height-1, min_, max_);
     double a_l,b_l;
     double a_r,b_r;
     fit_line(datax,datay,fr_l,to_l,a_l,b_l);
     fit_line(datax,datay,fr_r,to_r,a_r,b_r);
     double err_l = 0;
     double err_r = 0;
-    err_l += calculate_error_single_element<E,ROUND,BOUNDED>(datax, datay, a_l, b_l, fr_r);
-    err_l += calculate_error_single_element<E,ROUND,BOUNDED>(datax, datay, a_l, b_l, to_r);
-    err_r += calculate_error_single_element<E,ROUND,BOUNDED>(datax, datay, a_r, b_r, fr_l);
-    err_r += calculate_error_single_element<E,ROUND,BOUNDED>(datax, datay, a_r, b_r, to_l);
+    err_l += calculate_error_single_element<E,ROUND,BOUNDED>(datax, datay, a_l, b_l, fr_r, min_, max_);
+    err_l += calculate_error_single_element<E,ROUND,BOUNDED>(datax, datay, a_l, b_l, to_r, min_, max_);
+    err_r += calculate_error_single_element<E,ROUND,BOUNDED>(datax, datay, a_r, b_r, fr_l, min_, max_);
+    err_r += calculate_error_single_element<E,ROUND,BOUNDED>(datax, datay, a_r, b_r, to_l, min_, max_);
     
     for(unsigned int i = 0; i < (unsigned int)(2<<(height-1)) && i < datax.size(); i++){
         int ele = xorshf96()%datax.size();
-        err_l += calculate_error_single_element<E,ROUND,BOUNDED>(datax, datay, a_l, b_l, ele);
-        err_r += calculate_error_single_element<E,ROUND,BOUNDED>(datax, datay, a_r, b_r, ele);
+        err_l += calculate_error_single_element<E,ROUND,BOUNDED>(datax, datay, a_l, b_l, ele, min_, max_);
+        err_r += calculate_error_single_element<E,ROUND,BOUNDED>(datax, datay, a_r, b_r, ele, min_, max_);
     }
 
     if(err_l < err_r){

@@ -99,6 +99,8 @@ class LinearModelBuilder {
   inline void add(T x, int y) {
     x_data.push_back(static_cast<double>(x));
     y_data.push_back(static_cast<double>(y));
+    min_y = std::min(min_y, y);
+    max_y = std::max(max_y, y);
   }
 
   void build() {
@@ -113,17 +115,14 @@ class LinearModelBuilder {
       return;
     }
     int fr,to;
-    create_regression_tournament_selection<FastDiscreteLogNorm,true,false>(x_data, y_data, fr, to, std::min<int>(20, (int)log2(x_data.size())));
+    create_regression_tournament_selection<FastDiscreteLogNorm,true,true>(x_data, y_data, fr, to, std::min<int>(20, (int)log2(x_data.size())), min_y, max_y);
     fit_line(x_data, y_data, fr, to, model_->a_, model_->b_);
     //std::cout << model_->a_ << model_->b_ << std::endl;
   }
 
  private:
-  int count_ = 0;
-  long double x_sum_ = 0;
-  long double y_sum_ = 0;
-  long double xx_sum_ = 0;
-  long double xy_sum_ = 0;
+  int min_y = INT32_MAX;
+  int max_y = 0;
   T x_min_ = std::numeric_limits<T>::max();
   T x_max_ = std::numeric_limits<T>::lowest();
   double y_min_ = std::numeric_limits<double>::max();
