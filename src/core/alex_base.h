@@ -113,7 +113,7 @@ class LinearModelBuilder {
       return;
     }
     int fr,to;
-    create_regression_tournament_selection<FastDiscreteLogNorm,false,false>(x_data, y_data, fr, to, std::min<int>(20, (int)log2(x_data.size())));
+    create_regression_tournament_selection<FastDiscreteLogNorm,true,false>(x_data, y_data, fr, to, std::min<int>(20, (int)log2(x_data.size())));
     fit_line(x_data, y_data, fr, to, model_->a_, model_->b_);
     //std::cout << model_->a_ << model_->b_ << std::endl;
   }
